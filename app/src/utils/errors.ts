@@ -13,7 +13,9 @@ export class AppError extends Error {
   }
 }
 
-export function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<void>) {
+export function asyncHandler(
+  fn: (req: Request, res: Response, next: NextFunction) => unknown | Promise<unknown>
+) {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };
