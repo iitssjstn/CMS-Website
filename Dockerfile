@@ -15,8 +15,10 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-# Enable corepack for pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Enable corepack for pnpm (pinned to match package.json's "packageManager"
+# field — "pnpm@latest" would silently drift to newer major versions with
+# incompatible lockfile formats and break --frozen-lockfile installs)
+RUN corepack enable && corepack prepare pnpm@9.1.2 --activate
 
 # =============================================================================
 # Dependencies stage - install production deps only
