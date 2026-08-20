@@ -1,3 +1,1 @@
 fail-on-severity: high
-allow-ghsas:
-  - GHSA-xxxx-xxxx-xxxx  # Voeg eventuele false positives hier toe

@@ -17,6 +17,21 @@ jobs:
       contents: read
       packages: write
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cms_db
+          POSTGRES_USER: cms_user
+          POSTGRES_PASSWORD: cms_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cms_user -d cms_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,11 +50,7 @@ jobs:
 
       - name: Run container for health check
         run: |
-          docker run -d --name test-container -p 3000:3000 \
-            -e APP_ENV=production \
-            -e DATABASE_URL=postgresql://test:test@host.docker.internal:5432/test \
-            -e SESSION_SECRET=$(openssl rand -base64 32) \
-            local/test:latest
+          docker run -d --name test-container             --add-host host.docker.internal:host-gateway             -p 3000:3000             -e APP_ENV=production             -e DATABASE_URL=postgresql://cms_user:cms_password@host.docker.internal:5432/cms_db             -e SESSION_SECRET="$(openssl rand -base64 32)"             local/test:latest
 
       - name: Wait for health check
         run: |
@@ -47,6 +58,7 @@ jobs:
             if curl -f http://localhost:3000/healthz; then exit 0; fi
             sleep 2
           done
+          docker logs test-container || true
           exit 1
 
       - name: Cleanup
@@ -57,10 +69,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: pnpm/action-setup@v2
-        with: { version: 9 }
+        with:
+          version: 9
+
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: 'pnpm', cache-dependency-path: 'app/pnpm-lock.yaml' }
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
       - run: cd app && pnpm install --frozen-lockfile
+      - run: cd app && pnpm prisma generate
       - run: cd app && pnpm lint
       - run: cd app && pnpm test
