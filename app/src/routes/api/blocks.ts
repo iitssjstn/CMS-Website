@@ -10,8 +10,8 @@ const router = Router();
 
 router.use(requireAuth);
 
-const idParamSchema = z.object({ id: z.string().uuid() });
-const pageIdParamSchema = z.object({ pageId: z.string().uuid() });
+const idParamSchema = z.object({ id: z.string().cuid() });
+const pageIdParamSchema = z.object({ pageId: z.string().cuid() });
 
 router.get('/page/:pageId', validateParams(pageIdParamSchema), asyncHandler(async (req: Request, res: Response) => {
   const blocks = await prisma.block.findMany({
@@ -42,6 +42,18 @@ router.post('/page/:pageId', validateParams(pageIdParamSchema), validateBody(blo
   res.status(201).json({ block });
 }));
 
+router.patch('/reorder', validateBody(z.array(z.object({ id: z.string().cuid(), sortOrder: z.number().int() }))), asyncHandler(async (req: Request, res: Response) => {
+  await prisma.$transaction(
+    req.body.map((item: { id: string; sortOrder: number }) =>
+      prisma.block.update({
+        where: { id: item.id },
+        data: { sortOrder: item.sortOrder },
+      })
+    )
+  );
+  res.json({ success: true });
+}));
+
 router.patch('/:id', validateParams(idParamSchema), validateBody(blockSchema.partial()), asyncHandler(async (req: Request, res: Response) => {
   const block = await prisma.block.update({
     where: { id: req.params.id },
@@ -63,7 +75,7 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
     data: {
       pageId: original.pageId,
       type: original.type,
-      content: original.content,
+      content: original.content as any,
       sortOrder: (maxSortOrder._max.sortOrder || 0) + 1,
     },
   });
@@ -73,18 +85,6 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
 
 router.delete('/:id', validateParams(idParamSchema), asyncHandler(async (req: Request, res: Response) => {
   await prisma.block.delete({ where: { id: req.params.id } });
-  res.json({ success: true });
-}));
-
-router.patch('/reorder', validateBody(z.array(z.object({ id: z.string().uuid(), sortOrder: z.number().int() }))), asyncHandler(async (req: Request, res: Response) => {
-  await prisma.$transaction(
-    req.body.map((item: { id: string; sortOrder: number }) =>
-      prisma.block.update({
-        where: { id: item.id },
-        data: { sortOrder: item.sortOrder },
-      })
-    )
-  );
   res.json({ success: true });
 }));
 

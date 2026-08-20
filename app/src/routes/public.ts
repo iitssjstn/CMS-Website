@@ -3,6 +3,8 @@ import { prisma } from '@/utils/database';
 import { asyncHandler } from '@/utils/errors';
 import { optionalAuth } from '@/middleware/auth';
 import { getSiteSettings } from '@/utils/siteSettings';
+import { contactSchema } from '@/utils/validation';
+import { validateBody } from '@/middleware/validation';
 
 const router = Router();
 
@@ -34,10 +36,10 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
   const settings = await getSiteSettings();
 
   if (!page) {
-    return res.send(renderPage({ page: null, navPages, settings, user: req.user }));
+    return res.send(renderPage({ page: null, navPages, settings, user: req.user, csrfToken: req.csrfToken?.() || '' }));
   }
 
-  res.send(renderPage({ page, navPages, settings, user: req.user }));
+  res.send(renderPage({ page, navPages, settings, user: req.user, csrfToken: req.csrfToken?.() || '' }));
 }));
 
 // Dynamic page routes
@@ -66,11 +68,11 @@ router.get('/:slug', asyncHandler(async (req: Request, res: Response) => {
 
   const settings = await getSiteSettings();
 
-  res.send(renderPage({ page, navPages, settings, user: req.user }));
+  res.send(renderPage({ page, navPages, settings, user: req.user, csrfToken: req.csrfToken?.() || '' }));
 }));
 
 // Contact form submission (public)
-router.post('/contact', asyncHandler(async (req: Request, res: Response) => {
+router.post('/contact', validateBody(contactSchema), asyncHandler(async (req: Request, res: Response) => {
   const { name, email, subject, message, honeypot } = req.body;
 
   if (honeypot) {
@@ -116,7 +118,7 @@ router.get('/robots.txt', asyncHandler(async (_req: Request, res: Response) => {
   res.send(txt);
 }));
 
-function renderPage({ page, navPages, settings, user }: any): string {
+function renderPage({ page, navPages, settings, user, csrfToken }: any): string {
   const siteName = settings.site_name as string || 'Mijn Website';
   const siteDescription = settings.site_description as string || '';
   const logo = settings.site_logo as string || null;
@@ -154,6 +156,13 @@ function renderPage({ page, navPages, settings, user }: any): string {
         </div>
       </section>
     `;
+  }
+
+  if (csrfToken) {
+    contentHtml = contentHtml.replace(
+      '<form action="/contact" method="POST"',
+      `<form action="/contact" method="POST"><input type="hidden" name="_csrf" value="${escapeHtml(csrfToken)}"` 
+    );
   }
 
   return `<!DOCTYPE html>

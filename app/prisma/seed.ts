@@ -1,10 +1,14 @@
 import { PrismaClient } from '@prisma/client';
-import { generateSlug } from '../src/utils/slug';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Seeding database...');
+
+  const author = await prisma.user.findFirst({ orderBy: { createdAt: 'asc' } });
+  if (!author) {
+    throw new Error('Create an administrator through /setup before seeding pages.');
+  }
 
   // Create default pages (only if no pages exist)
   const pageCount = await prisma.page.count();
@@ -215,7 +219,7 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
       await prisma.page.create({
         data: {
           ...pageData,
-          authorId: 'system', // Will be updated after admin creation
+          authorId: author.id,
         },
       });
     }

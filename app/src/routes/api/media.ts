@@ -37,7 +37,7 @@ const upload = multer({
   },
 });
 
-const idParamSchema = z.object({ id: z.string().uuid() });
+const idParamSchema = z.object({ id: z.string().cuid() });
 
 router.get('/', asyncHandler(async (req: Request, res: Response) => {
   const media = await prisma.media.findMany({

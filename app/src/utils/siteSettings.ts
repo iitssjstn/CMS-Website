@@ -34,7 +34,7 @@ export async function initializeDefaultSettings() {
   if (existingCount > 0) return;
 
   await prisma.setting.createMany({
-    data: DEFAULT_SETTINGS,
+    data: DEFAULT_SETTINGS as any,
     skipDuplicates: true,
   });
 }

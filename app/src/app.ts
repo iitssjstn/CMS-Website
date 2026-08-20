@@ -5,7 +5,8 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import csrf from 'csurf';
 import path from 'path';
-import { config, allowedMimeTypes } from '@/config';
+import fs from 'fs/promises';
+import { config } from '@/config';
 import { prisma } from '@/utils/database';
 import { initializeDefaultSettings } from '@/utils/siteSettings';
 import { errorHandler, notFoundHandler } from '@/middleware/errorHandler';
@@ -20,7 +21,7 @@ import dashboardRoutes from '@/routes/api/dashboard';
 import publicRoutes from '@/routes/public';
 import adminRoutes from '@/routes/admin';
 
-export function createApp() {
+export function createApp(): express.Express {
   const app = express();
 
   // Trust proxy (needed for secure cookies behind NPM)
@@ -78,7 +79,7 @@ export function createApp() {
     if (req.path.startsWith('/api/') || req.path.startsWith('/setup') || req.path === '/healthz' || req.path === '/readyz') {
       return next();
     }
-    csrfProtection(req, res, next);
+    csrfProtection(req as never, res as never, next as never);
   });
 
   // Make CSRF token available to views
@@ -108,6 +109,9 @@ export function createApp() {
   app.use('/admin/api/messages', messageRoutes);
   app.use('/admin/api/dashboard', dashboardRoutes);
 
+  // Authentication pages and actions
+  app.use('/admin', authRoutes);
+
   // Admin panel (SPA)
   app.use('/admin', adminRoutes);
 
@@ -121,8 +125,10 @@ export function createApp() {
   return app;
 }
 
-export async function initializeApp() {
+export async function initializeApp(): Promise<express.Express> {
   const app = createApp();
+
+  await fs.mkdir(path.join(process.cwd(), 'public', 'uploads'), { recursive: true });
   
   // Initialize default settings
   await initializeDefaultSettings();

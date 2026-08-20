@@ -11,7 +11,7 @@ const router = Router();
 
 router.use(requireAuth);
 
-const idParamSchema = z.object({ id: z.string().uuid() });
+const idParamSchema = z.object({ id: z.string().cuid() });
 const slugParamSchema = z.object({ slug: z.string().min(1).max(200) });
 
 router.get('/', asyncHandler(async (req: Request, res: Response) => {
@@ -39,6 +39,18 @@ router.get('/published', asyncHandler(async (req: Request, res: Response) => {
   });
   
   res.json({ pages });
+}));
+
+router.patch('/reorder', validateBody(z.array(z.object({ id: z.string().cuid(), sortOrder: z.number().int() }))), asyncHandler(async (req: Request, res: Response) => {
+  await prisma.$transaction(
+    req.body.map((item: { id: string; sortOrder: number }) =>
+      prisma.page.update({
+        where: { id: item.id },
+        data: { sortOrder: item.sortOrder },
+      })
+    )
+  );
+  res.json({ success: true });
 }));
 
 router.get('/:id', validateParams(idParamSchema), asyncHandler(async (req: Request, res: Response) => {
@@ -126,7 +138,7 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
       title: `${original.title} (kopie)`,
       slug,
       status: 'DRAFT',
-      content: original.content,
+      content: original.content as any,
       authorId: req.user!.id,
       sortOrder: (maxSortOrder._max.sortOrder || 0) + 1,
       seoTitle: original.seoTitle,
@@ -137,7 +149,7 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
       blocks: {
         create: original.blocks.map(block => ({
           type: block.type,
-          content: block.content,
+          content: block.content as any,
           sortOrder: block.sortOrder,
         })),
       },
@@ -150,18 +162,6 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
 
 router.delete('/:id', validateParams(idParamSchema), asyncHandler(async (req: Request, res: Response) => {
   await prisma.page.delete({ where: { id: req.params.id } });
-  res.json({ success: true });
-}));
-
-router.patch('/reorder', validateBody(z.array(z.object({ id: z.string().uuid(), sortOrder: z.number().int() }))), asyncHandler(async (req: Request, res: Response) => {
-  await prisma.$transaction(
-    req.body.map((item: { id: string; sortOrder: number }) =>
-      prisma.page.update({
-        where: { id: item.id },
-        data: { sortOrder: item.sortOrder },
-      })
-    )
-  );
   res.json({ success: true });
 }));
 

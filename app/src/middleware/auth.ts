@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '@/utils/database';
-import { verifyPassword } from '@/utils/security';
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const sessionId = req.cookies?.sessionId;
