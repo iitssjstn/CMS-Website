@@ -1,4 +1,5 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { prisma } from '@/utils/database';
 import { verifyPassword, generateSessionId } from '@/utils/security';
 import { loginSchema } from '@/utils/validation';
@@ -6,7 +7,7 @@ import { validateBody } from '@/middleware/validation';
 import { asyncHandler, AppError } from '@/utils/errors';
 import { requireNoSetup } from '@/middleware/auth';
 
-const router = Router();
+const router: Router = Router();
 
 const SESSION_COOKIE_NAME = 'sessionId';
 const SESSION_MAX_AGE = 1000 * 60 * 60 * 24 * 30; // 30 days

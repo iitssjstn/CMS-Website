@@ -1,4 +1,5 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { prisma } from '@/utils/database';
 import { blockSchema } from '@/utils/validation';
 import { validateBody, validateParams } from '@/middleware/validation';
@@ -6,7 +7,9 @@ import { asyncHandler, AppError } from '@/utils/errors';
 import { requireAuth } from '@/middleware/auth';
 import { z } from 'zod';
 
-const router = Router();
+type JsonInputValue = string | number | boolean | { [key: string]: JsonInputValue | null } | JsonInputValue[];
+
+const router: Router = Router();
 
 router.use(requireAuth);
 
@@ -34,7 +37,7 @@ router.post('/page/:pageId', validateParams(pageIdParamSchema), validateBody(blo
     data: {
       pageId: req.params.pageId,
       type: req.body.type,
-      content: req.body.content as any,
+      content: req.body.content as unknown as JsonInputValue,
       sortOrder: (maxSortOrder._max.sortOrder || 0) + 1,
     },
   });
@@ -63,7 +66,7 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
     data: {
       pageId: original.pageId,
       type: original.type as any,
-      content: original.content as any,
+      content: original.content as unknown as JsonInputValue,
       sortOrder: (maxSortOrder._max.sortOrder || 0) + 1,
     },
   });

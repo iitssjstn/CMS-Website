@@ -1,9 +1,10 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { prisma } from '@/utils/database';
 import { requireAuth } from '@/middleware/auth';
 import { asyncHandler } from '@/utils/errors';
 
-const router = Router();
+const router: Router = Router();
 router.use(requireAuth);
 
 router.get('/stats', asyncHandler(async (_req: Request, res: Response) => {

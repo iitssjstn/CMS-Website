@@ -1,4 +1,5 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { prisma } from '@/utils/database';
 import { pageSchema, blockSchema } from '@/utils/validation';
 import { validateBody, validateParams } from '@/middleware/validation';
@@ -7,7 +8,9 @@ import { requireAuth } from '@/middleware/auth';
 import { generateSlug, ensureUniqueSlug } from '@/utils/slug';
 import { z } from 'zod';
 
-const router = Router();
+type JsonInputValue = string | number | boolean | { [key: string]: JsonInputValue | null } | JsonInputValue[];
+
+const router: Router = Router();
 
 router.use(requireAuth);
 
@@ -126,7 +129,7 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
       title: `${original.title} (kopie)`,
       slug,
       status: 'DRAFT',
-      content: original.content,
+      content: original.content as unknown as JsonInputValue,
       authorId: req.user!.id,
       sortOrder: (maxSortOrder._max.sortOrder || 0) + 1,
       seoTitle: original.seoTitle,
@@ -137,7 +140,7 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
       blocks: {
         create: original.blocks.map(block => ({
           type: block.type as any,
-          content: block.content as any,
+          content: block.content as unknown as JsonInputValue,
           sortOrder: block.sortOrder,
         })),
       },

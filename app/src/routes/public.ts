@@ -1,10 +1,11 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { prisma } from '@/utils/database';
 import { asyncHandler } from '@/utils/errors';
 import { optionalAuth } from '@/middleware/auth';
 import { getSiteSettings } from '@/utils/siteSettings';
 
-const router = Router();
+const router: Router = Router();
 
 router.use(optionalAuth);
 

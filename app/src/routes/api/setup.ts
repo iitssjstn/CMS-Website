@@ -1,4 +1,5 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { prisma } from '@/utils/database';
 import { hashPassword } from '@/utils/security';
 import { setupSchema } from '@/utils/validation';
@@ -6,7 +7,7 @@ import { validateBody } from '@/middleware/validation';
 import { asyncHandler, AppError } from '@/utils/errors';
 import { requireSetup } from '@/middleware/auth';
 
-const router = Router();
+const router: Router = Router();
 
 router.get('/', requireSetup, asyncHandler(async (req: Request, res: Response) => {
   const setup = await prisma.setupStatus.findUnique({ where: { id: 'singleton' } });

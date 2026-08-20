@@ -16,7 +16,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Enable corepack for pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.1.2 --activate
 
 # =============================================================================
 # Dependencies stage - install production deps only

@@ -1,4 +1,5 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { prisma } from '@/utils/database';
 import { mediaUploadSchema } from '@/utils/validation';
 import { validateBody, validateParams } from '@/middleware/validation';
@@ -12,7 +13,7 @@ import sharp from 'sharp';
 import { config, allowedMimeTypes, maxFileSize, validateImageBuffer } from '@/config';
 import { z } from 'zod';
 
-const router = Router();
+const router: Router = Router();
 
 router.use(requireAuth);
 

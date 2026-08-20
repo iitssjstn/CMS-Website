@@ -1,8 +1,9 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { requireAuth } from '@/middleware/auth';
 import { asyncHandler } from '@/utils/errors';
 
-const router = Router();
+const router: Router = Router();
 
 router.use(requireAuth);
 

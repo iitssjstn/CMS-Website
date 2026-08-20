@@ -1,4 +1,5 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { prisma } from '@/utils/database';
 import { settingsSchema } from '@/utils/validation';
 import { validateBody } from '@/middleware/validation';
@@ -6,7 +7,7 @@ import { asyncHandler, AppError } from '@/utils/errors';
 import { requireAuth } from '@/middleware/auth';
 import { getSiteSettings, updateSettings } from '@/utils/siteSettings';
 
-const router = Router();
+const router: Router = Router();
 
 router.use(requireAuth);
 
