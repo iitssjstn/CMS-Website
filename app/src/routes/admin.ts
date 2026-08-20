@@ -64,7 +64,7 @@ function adminHtml(csrfToken: string): string {
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
-<body class="bg-gray-50" x-data="adminApp()" x-init="init()">
+<body class="bg-gray-50" x-data="adminApp" x-init="init()">
   <div x-show="sidebarOpen" x-transition class="fixed inset-0 bg-black/50 z-40 lg:hidden" @click="sidebarOpen = false" aria-hidden="true"></div>
   <div class="flex h-screen overflow-hidden">
     <aside x-show="!sidebarOpen" x-transition class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform lg:translate-x-0 transition-transform duration-200 ease-in-out" :class="{ '-translate-x-full': sidebarOpen }" aria-label="Hoofdmenu">
@@ -181,10 +181,18 @@ function adminHtml(csrfToken: string): string {
   <!-- TOAST CONTAINER -->
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2" aria-live="polite"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@alpinejs/csp@3.13.3/dist/cdn.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <script>
     const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    // The CSP-safe Alpine build can't eval x-data="adminApp()" strings, so we
+    // register the components by name up front and reference them without
+    // parentheses in the markup (x-data="adminApp").
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('adminApp', adminApp);
+      Alpine.data('blockEditor', blockEditor);
+    });
 
     function adminApp() {
       return {
@@ -213,6 +221,18 @@ function adminHtml(csrfToken: string): string {
         settingsGroups: [],
         settingsData: {},
         messages: [],
+
+        get pageTitle() {
+          const titles = {
+            dashboard: 'Dashboard',
+            pages: 'Pagina\\'s',
+            'page-editor': this.editingPage ? 'Pagina bewerken' : 'Nieuwe pagina',
+            media: 'Media',
+            settings: 'Instellingen',
+            messages: 'Berichten',
+          };
+          return titles[this.currentView] || 'Dashboard';
+        },
 
         async init() {
           await this.loadUser();
