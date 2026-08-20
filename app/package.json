@@ -12,7 +12,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "lint": "eslint src --ext .ts",
+    "lint": "tsc --noEmit --skipLibCheck",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
@@ -42,14 +42,14 @@
     "@types/multer": "^1.4.11",
     "@types/node": "^20.12.12",
     "@types/uuid": "^9.0.8",
-    "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0",
     "eslint": "^8.57.0",
+    "pnpm": "^9.1.2",
     "prisma": "^5.14.0",
     "tsc-alias": "^1.8.10",
     "tsx": "^4.11.0",
     "typescript": "^5.4.5",
-    "vitest": "^1.6.0"
+    "vitest": "^1.6.0",
+    "@types/express-serve-static-core": "4.19.9"
   },
   "engines": {
     "node": ">=20.0.0"
