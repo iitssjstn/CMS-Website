@@ -13,7 +13,7 @@ router.get('/', requireSetup, asyncHandler(async (req: Request, res: Response) =
   const setup = await prisma.setupStatus.findUnique({ where: { id: 'singleton' } });
   
   if (setup?.completed) {
-    return res.redirect('/admin/login');
+    return res.redirect('/admin/api/auth/login');
   }
 
   res.send(`
@@ -114,7 +114,7 @@ router.get('/', requireSetup, asyncHandler(async (req: Request, res: Response) =
         successDiv.classList.remove('hidden');
         
         setTimeout(() => {
-          window.location.href = '/admin/login';
+          window.location.href = '/admin/api/auth/login';
         }, 1500);
       } catch (err) {
         errorDiv.textContent = err.message;

@@ -8,7 +8,7 @@ async function start() {
     const server = app.listen(config.APP_PORT, () => {
       console.log(`🚀 Server running on port ${config.APP_PORT} (${config.APP_ENV})`);
       console.log(`📝 Setup: http://localhost:${config.APP_PORT}/setup`);
-      console.log(`🔐 Admin: http://localhost:${config.APP_PORT}/admin/login`);
+      console.log(`🔐 Admin: http://localhost:${config.APP_PORT}/admin/api/auth/login`);
     });
 
     // Graceful shutdown

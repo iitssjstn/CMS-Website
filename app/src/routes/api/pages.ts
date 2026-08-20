@@ -68,6 +68,7 @@ router.post('/', validateBody(pageSchema), asyncHandler(async (req: Request, res
   const slug = ensureUniqueSlug(baseSlug, existingSlugs);
   
   const maxSortOrder = await prisma.page.aggregate({ _max: { sortOrder: true } });
+  const blocks = Array.isArray(content) ? content : [];
   
   const page = await prisma.page.create({
     data: {
@@ -79,6 +80,13 @@ router.post('/', validateBody(pageSchema), asyncHandler(async (req: Request, res
       sortOrder: (maxSortOrder._max.sortOrder || 0) + 1,
       publishedAt: status === 'PUBLISHED' ? new Date() : null,
       ...rest,
+      blocks: {
+        create: blocks.map((block: any, index: number) => ({
+          type: block.type,
+          content: (block.content ?? {}) as any,
+          sortOrder: block.sortOrder ?? index,
+        })),
+      },
     },
     include: { blocks: { orderBy: { sortOrder: 'asc' } } },
   });
@@ -98,6 +106,17 @@ router.patch('/:id', validateParams(idParamSchema), validateBody(pageSchema.part
     updateData.publishedAt = status === 'PUBLISHED' ? new Date() : null;
   }
   if (content) updateData.content = content;
+
+  if (Array.isArray(content)) {
+    await prisma.block.deleteMany({ where: { pageId: req.params.id } });
+    updateData.blocks = {
+      create: content.map((block: any, index: number) => ({
+        type: block.type,
+        content: (block.content ?? {}) as any,
+        sortOrder: block.sortOrder ?? index,
+      })),
+    };
+  }
   
   const page = await prisma.page.update({
     where: { id: req.params.id },
