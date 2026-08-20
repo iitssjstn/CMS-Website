@@ -41,6 +41,7 @@ RUN pnpm prisma generate
 
 COPY app/. .
 RUN pnpm run build
+RUN pnpm prune --prod
 
 # =============================================================================
 # Production stage - minimal runtime image
@@ -58,10 +59,10 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-# Copy built application
+# Copy built application and the generated dependency tree. Keeping these
+# together preserves pnpm's symlinks and includes the generated Prisma client.
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
 
