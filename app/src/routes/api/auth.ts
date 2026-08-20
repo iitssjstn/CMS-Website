@@ -5,7 +5,7 @@ import { verifyPassword, generateSessionId } from '@/utils/security';
 import { loginSchema } from '@/utils/validation';
 import { validateBody } from '@/middleware/validation';
 import { asyncHandler, AppError } from '@/utils/errors';
-import { requireNoSetup } from '@/middleware/auth';
+import { requireAuth, requireNoSetup } from '@/middleware/auth';
 
 const router: Router = Router();
 const SESSION_COOKIE_NAME = 'sessionId';
@@ -211,6 +211,7 @@ router.post(
 
 router.get(
   '/me',
+  requireAuth,
   asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Niet geauthenticeerd' });
