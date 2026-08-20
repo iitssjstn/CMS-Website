@@ -1,4 +1,5 @@
 import { prisma } from '@/utils/database';
+import { SettingType } from '@prisma/client';
 
 const DEFAULT_SETTINGS = [
   { key: 'site_name', value: 'Mijn Website', type: 'STRING', label: 'Website naam', group: 'general', sortOrder: 1 },
