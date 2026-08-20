@@ -11,7 +11,7 @@ const router = Router();
 
 router.use(requireAuth);
 
-const idParamSchema = z.object({ id: z.string().cuid() });
+const idParamSchema = z.object({ id: z.string().uuid() });
 const slugParamSchema = z.object({ slug: z.string().min(1).max(200) });
 
 router.get('/', asyncHandler(async (req: Request, res: Response) => {
@@ -41,18 +41,6 @@ router.get('/published', asyncHandler(async (req: Request, res: Response) => {
   res.json({ pages });
 }));
 
-router.patch('/reorder', validateBody(z.array(z.object({ id: z.string().cuid(), sortOrder: z.number().int() }))), asyncHandler(async (req: Request, res: Response) => {
-  await prisma.$transaction(
-    req.body.map((item: { id: string; sortOrder: number }) =>
-      prisma.page.update({
-        where: { id: item.id },
-        data: { sortOrder: item.sortOrder },
-      })
-    )
-  );
-  res.json({ success: true });
-}));
-
 router.get('/:id', validateParams(idParamSchema), asyncHandler(async (req: Request, res: Response) => {
   const page = await prisma.page.findUnique({
     where: { id: req.params.id },
@@ -73,7 +61,7 @@ router.post('/', validateBody(pageSchema), asyncHandler(async (req: Request, res
   const { title, slug: providedSlug, status, content, ...rest } = req.body;
   
   const baseSlug = providedSlug || generateSlug(title);
-  const existingSlugs = (await prisma.page.findMany({ select: { slug: true } })).map(p => p.slug);
+  const existingSlugs = (await prisma.page.findMany({ select: { slug: true } })).map((p: { slug: string }) => p.slug);
   const slug = ensureUniqueSlug(baseSlug, existingSlugs);
   
   const maxSortOrder = await prisma.page.aggregate({ _max: { sortOrder: true } });
@@ -128,7 +116,7 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
   }
   
   const baseSlug = generateSlug(`${original.title} kopie`);
-  const existingSlugs = (await prisma.page.findMany({ select: { slug: true } })).map(p => p.slug);
+  const existingSlugs = (await prisma.page.findMany({ select: { slug: true } })).map((p: { slug: string }) => p.slug);
   const slug = ensureUniqueSlug(baseSlug, existingSlugs);
   
   const maxSortOrder = await prisma.page.aggregate({ _max: { sortOrder: true } });
@@ -138,7 +126,7 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
       title: `${original.title} (kopie)`,
       slug,
       status: 'DRAFT',
-      content: original.content as any,
+      content: original.content,
       authorId: req.user!.id,
       sortOrder: (maxSortOrder._max.sortOrder || 0) + 1,
       seoTitle: original.seoTitle,
@@ -147,9 +135,9 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
       ogDescription: original.ogDescription,
       ogImage: original.ogImage,
       blocks: {
-        create: original.blocks.map(block => ({
+        create: original.blocks.map((block: { type: string; content: unknown; sortOrder: number }) => ({
           type: block.type,
-          content: block.content as any,
+          content: block.content,
           sortOrder: block.sortOrder,
         })),
       },
@@ -162,6 +150,18 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
 
 router.delete('/:id', validateParams(idParamSchema), asyncHandler(async (req: Request, res: Response) => {
   await prisma.page.delete({ where: { id: req.params.id } });
+  res.json({ success: true });
+}));
+
+router.patch('/reorder', validateBody(z.array(z.object({ id: z.string().uuid(), sortOrder: z.number().int() }))), asyncHandler(async (req: Request, res: Response) => {
+  await prisma.$transaction(
+    req.body.map((item: { id: string; sortOrder: number }) =>
+      prisma.page.update({
+        where: { id: item.id },
+        data: { sortOrder: item.sortOrder },
+      })
+    )
+  );
   res.json({ success: true });
 }));
 

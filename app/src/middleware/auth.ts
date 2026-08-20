@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '@/utils/database';
+import { verifyPassword } from '@/utils/security';
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const sessionId = req.cookies?.sessionId;
@@ -49,20 +50,27 @@ export async function requireNoSetup(req: Request, res: Response, next: NextFunc
   next();
 }
 
-export function optionalAuth(req: Request, res: Response, next: NextFunction) {
+export async function optionalAuth(req: Request, res: Response, next: NextFunction) {
   const sessionId = req.cookies?.sessionId;
-  
-  if (!sessionId) return next();
 
-  prisma.session.findUnique({
-    where: { sessionId },
-    include: { user: true },
-  }).then(session => {
+  if (!sessionId) {
+    return next();
+  }
+
+  try {
+    const session = await prisma.session.findUnique({
+      where: { sessionId },
+      include: { user: true },
+    });
+
     if (session && session.expiresAt > new Date() && session.user.isActive) {
       req.user = session.user;
       req.user.session = session;
       res.locals.user = session.user;
     }
-    next();
-  }).catch(() => next());
+  } catch {
+    // Optional authentication must never block public pages.
+  }
+
+  next();
 }

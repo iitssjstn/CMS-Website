@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
-import { Prisma } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { AppError } from '@/utils/errors';
 
 export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction) {
@@ -20,7 +20,7 @@ export function errorHandler(err: Error, req: Request, res: Response, _next: Nex
     });
   }
 
-  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+  if (err instanceof PrismaClientKnownRequestError) {
     if (err.code === 'P2002') {
       const target = (err.meta?.target as string[])?.join(', ') || 'veld';
       return res.status(409).json({ error: `${target} bestaat al` });
@@ -31,7 +31,7 @@ export function errorHandler(err: Error, req: Request, res: Response, _next: Nex
   }
 
   if (err.name === 'MulterError') {
-    if ((err as Error & { code?: string }).code === 'LIMIT_FILE_SIZE') {
+    if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(413).json({ error: 'Bestand te groot' });
     }
     return res.status(400).json({ error: 'Uploadfout' });

@@ -18,21 +18,19 @@ export const loginSchema = z.object({
 
 export const pageSchema = z.object({
   title: z.string().min(1).max(200),
-  slug: z.string().min(1).max(200).refine(slug => slug === '/' || /^[a-z0-9-]+$/.test(slug), {
-    message: 'Slug moet uit kleine letters, cijfers en koppeltekens bestaan',
-  }),
+  slug: z.string().min(1).max(200).regex(/^[a-z0-9-]+$/),
   status: z.enum(['DRAFT', 'PUBLISHED']),
   seoTitle: z.string().max(60).optional(),
   metaDescription: z.string().max(160).optional(),
   ogTitle: z.string().max(60).optional(),
   ogDescription: z.string().max(160).optional(),
-  ogImage: z.string().cuid().optional().nullable(),
+  ogImage: z.string().uuid().optional().nullable(),
   content: z.array(z.unknown()), // Blocks validated separately
   sortOrder: z.coerce.number().int().min(0).default(0),
 });
 
 export const blockSchema = z.object({
-  id: z.string().cuid().optional(),
+  id: z.string().uuid().optional(),
   type: z.enum([
     'HEADING', 'TEXT', 'IMAGE', 'BUTTON', 'LINK', 'VIDEO',
     'HERO', 'TWO_COLUMNS', 'THREE_COLUMNS', 'SPACER', 'DIVIDER', 'HTML'
