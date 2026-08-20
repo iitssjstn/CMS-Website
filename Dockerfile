@@ -23,7 +23,7 @@ RUN corepack enable && corepack prepare pnpm@9.1.2 --activate
 # =============================================================================
 FROM base AS deps
 
-COPY app/package.json app/pnpm-lock.yaml* ./
+COPY app/package.json app/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --prod
 
 # =============================================================================
@@ -31,7 +31,7 @@ RUN pnpm install --frozen-lockfile --prod
 # =============================================================================
 FROM base AS builder
 
-COPY app/package.json app/pnpm-lock.yaml* ./
+COPY app/package.json app/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY app/prisma ./prisma/
