@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  passwordHash  String
+  role          Role      @default(ADMIN)
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  pages         Page[]
+  media         Media[]
+  sessions      Session[]
+
+  @@index([email])
+  @@index([username])
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Page {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  content         Json      // Array of blocks
+  status          PageStatus @default(DRAFT)
+  seoTitle        String?
+  metaDescription String?
+  ogTitle         String?
+  ogDescription   String?
+  ogImage         String?   // Media ID
+  sortOrder       Int       @default(0)
+  authorId        String
+  author          User      @relation(fields: [authorId], references: [id])
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  blocks          Block[]
+
+  @@index([status])
+  @@index([slug])
+  @@index([authorId])
+  @@index([sortOrder])
+}
+
+enum PageStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  pageId    String
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  type      BlockType
+  content   Json     // Block-specific content
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pageId])
+  @@index([sortOrder])
+}
+
+enum BlockType {
+  HEADING
+  TEXT
+  IMAGE
+  BUTTON
+  LINK
+  VIDEO
+  HERO
+  TWO_COLUMNS
+  THREE_COLUMNS
+  SPACER
+  DIVIDER
+  HTML
+}
+
+model Media {
+  id          String   @id @default(cuid())
+  filename    String   // Stored filename (UUID + ext)
+  originalName String
+  mimeType    String
+  size        Int
+  width       Int?
+  height      Int?
+  alt         String?
+  description String?
+  uploadedById String
+  uploadedBy  User     @relation(fields: [uploadedById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([uploadedById])
+  @@index([mimeType])
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json     // Flexible value storage
+  type      SettingType @default(STRING)
+  label     String
+  description String?
+  group     String   @default("general")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([group])
+  @@index([sortOrder])
+}
+
+enum SettingType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+  IMAGE
+  COLOR
+  URL
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  ipAddress String?
+  userAgent String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([email])
+}
+
+model SetupStatus {
+  id        String   @id @default("singleton")
+  completed Boolean  @default(false)
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
