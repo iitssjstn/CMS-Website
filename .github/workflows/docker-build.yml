@@ -13,6 +13,20 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     permissions:
       contents: read
       packages: write
@@ -35,7 +49,7 @@ jobs:
 
       - name: Run container for health check
         run: |
-          docker run -d --name test-container -p 3000:3000 \
+          docker run -d --name test-container --add-host=host.docker.internal:host-gateway -p 3000:3000 \
             -e APP_ENV=production \
             -e DATABASE_URL=postgresql://test:test@host.docker.internal:5432/test \
             -e SESSION_SECRET=$(openssl rand -base64 32) \
@@ -60,7 +74,10 @@ jobs:
       - uses: pnpm/action-setup@v2
         with: { version: 9 }
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: 'pnpm' }
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          cache-dependency-path: app/pnpm-lock.yaml
       - run: cd app && pnpm install --frozen-lockfile
-      - run: cd app && pnpm lint
+      - run: cd app && pnpm typecheck
       - run: cd app && pnpm test
