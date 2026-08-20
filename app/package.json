@@ -12,8 +12,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "lint": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
@@ -52,5 +52,10 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "packageManager": "pnpm@9.1.2"
+  "packageManager": "pnpm@9.1.2",
+  "pnpm": {
+    "overrides": {
+      "@types/express-serve-static-core": "4.19.9"
+    }
+  }
 }

@@ -97,7 +97,7 @@ router.get('/sitemap.xml', asyncHandler(async (_req: Request, res: Response) => 
 
   const baseUrl = process.env.APP_URL || 'http://localhost:3000';
   
-  const urls = pages.map((page: { slug: string; updatedAt: Date }) => {
+  const urls = pages.map(page => {
     const url = page.slug === '/' ? baseUrl : `${baseUrl}/${page.slug}`;
     return `  <url>\n    <loc>${url}</loc>\n    <lastmod>${page.updatedAt.toISOString().split('T')[0]}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${page.slug === '/' ? '1.0' : '0.8'}</priority>\n  </url>`;
   }).join('\n');
@@ -116,21 +116,7 @@ router.get('/robots.txt', asyncHandler(async (_req: Request, res: Response) => {
   res.send(txt);
 }));
 
-type PublicPage = {
-  title: string;
-  slug: string;
-  seoTitle: string | null;
-  metaDescription: string | null;
-  ogTitle: string | null;
-  ogDescription: string | null;
-  ogImage: string | null;
-  blocks: Array<{ id: string; type: string; content: unknown; sortOrder: number }>;
-};
-type NavPage = { title: string; slug: string; sortOrder: number };
-type SiteSettings = Record<string, unknown>;
-type RenderPageArgs = { page: PublicPage | null; navPages: NavPage[]; settings: SiteSettings; user?: unknown; csrfToken?: string };
-
-function renderPage({ page, navPages, settings, user, csrfToken }: RenderPageArgs): string {
+function renderPage({ page, navPages, settings, user }: any): string {
   const siteName = settings.site_name as string || 'Mijn Website';
   const siteDescription = settings.site_description as string || '';
   const logo = settings.site_logo as string || null;
@@ -147,7 +133,7 @@ function renderPage({ page, navPages, settings, user, csrfToken }: RenderPageArg
     { key: 'social_youtube', label: 'YouTube', icon: 'youtube' },
   ].map(s => ({ ...s, url: settings[s.key] as string })).filter(s => s.url);
 
-  const navHtml = navPages.map((p: NavPage) => 
+  const navHtml = navPages.map((p: any) => 
     `<li><a href="/${p.slug}" class="px-3 py-2 text-gray-700 hover:text-blue-600 transition-colors rounded-lg">${p.title}</a></li>`
   ).join('');
 
@@ -246,7 +232,7 @@ function renderPage({ page, navPages, settings, user, csrfToken }: RenderPageArg
         <div>
           <h4 class="text-white font-semibold mb-4">Navigatie</h4>
           <ul class="space-y-2 text-sm">
-            ${navPages.map((p: NavPage) => `<li><a href="/${p.slug}" class="hover:text-blue-400 transition-colors">${p.title}</a></li>`).join('')}
+            ${navPages.map((p: any) => `<li><a href="/${p.slug}" class="hover:text-blue-400 transition-colors">${p.title}</a></li>`).join('')}
           </ul>
         </div>
         <div>
@@ -269,7 +255,7 @@ function renderPage({ page, navPages, settings, user, csrfToken }: RenderPageArg
 </body></html>`;
 }
 
-function renderBlock(block: { type: string; content: any }, settings: SiteSettings): string {
+function renderBlock(block: any, settings: any): string {
   const c = block.content || {};
   
   switch (block.type) {
@@ -314,7 +300,7 @@ function renderBlock(block: { type: string; content: any }, settings: SiteSettin
   }
 }
 
-function renderColumnContent(col: any, _settings: SiteSettings): string {
+function renderColumnContent(col: any, settings: any): string {
   if (!col) return '';
   let html = '';
   if (col.mediaId) html += `<img src="/uploads/${col.mediaId}" alt="${escapeHtml(col.alt || '')}" class="w-full h-auto rounded-lg mb-4" loading="lazy">`;

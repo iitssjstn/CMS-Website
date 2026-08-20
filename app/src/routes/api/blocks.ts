@@ -34,7 +34,7 @@ router.post('/page/:pageId', validateParams(pageIdParamSchema), validateBody(blo
     data: {
       pageId: req.params.pageId,
       type: req.body.type,
-      content: req.body.content,
+      content: req.body.content as any,
       sortOrder: (maxSortOrder._max.sortOrder || 0) + 1,
     },
   });
@@ -62,8 +62,8 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
   const block = await prisma.block.create({
     data: {
       pageId: original.pageId,
-      type: original.type,
-      content: original.content,
+      type: original.type as any,
+      content: original.content as any,
       sortOrder: (maxSortOrder._max.sortOrder || 0) + 1,
     },
   });

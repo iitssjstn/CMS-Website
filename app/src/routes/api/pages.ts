@@ -61,7 +61,7 @@ router.post('/', validateBody(pageSchema), asyncHandler(async (req: Request, res
   const { title, slug: providedSlug, status, content, ...rest } = req.body;
   
   const baseSlug = providedSlug || generateSlug(title);
-  const existingSlugs = (await prisma.page.findMany({ select: { slug: true } })).map((p: { slug: string }) => p.slug);
+  const existingSlugs = (await prisma.page.findMany({ select: { slug: true } })).map(p => p.slug);
   const slug = ensureUniqueSlug(baseSlug, existingSlugs);
   
   const maxSortOrder = await prisma.page.aggregate({ _max: { sortOrder: true } });
@@ -116,7 +116,7 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
   }
   
   const baseSlug = generateSlug(`${original.title} kopie`);
-  const existingSlugs = (await prisma.page.findMany({ select: { slug: true } })).map((p: { slug: string }) => p.slug);
+  const existingSlugs = (await prisma.page.findMany({ select: { slug: true } })).map(p => p.slug);
   const slug = ensureUniqueSlug(baseSlug, existingSlugs);
   
   const maxSortOrder = await prisma.page.aggregate({ _max: { sortOrder: true } });
@@ -135,9 +135,9 @@ router.post('/:id/duplicate', validateParams(idParamSchema), asyncHandler(async 
       ogDescription: original.ogDescription,
       ogImage: original.ogImage,
       blocks: {
-        create: original.blocks.map((block: { type: string; content: unknown; sortOrder: number }) => ({
-          type: block.type,
-          content: block.content,
+        create: original.blocks.map(block => ({
+          type: block.type as any,
+          content: block.content as any,
           sortOrder: block.sortOrder,
         })),
       },

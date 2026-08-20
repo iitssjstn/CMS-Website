@@ -148,22 +148,23 @@ router.post('/', requireSetup, validateBody(setupSchema), asyncHandler(async (re
   const { username, email, password } = req.body;
   
   const passwordHash = await hashPassword(password);
-  await prisma.$transaction([
-    prisma.user.create({
+  
+  await prisma.$transaction(async (tx) => {
+    await tx.user.create({
       data: {
         username,
         email: email.toLowerCase(),
         passwordHash,
         role: 'ADMIN',
       },
-    }),
-    prisma.setupStatus.upsert({
+    });
+    
+    await tx.setupStatus.upsert({
       where: { id: 'singleton' },
       create: { id: 'singleton', completed: true, completedAt: new Date() },
       update: { completed: true, completedAt: new Date() },
-    }),
-  ]);
-    
+    });
+  });
 
   res.json({ success: true, message: 'Administrator aangemaakt' });
 }));

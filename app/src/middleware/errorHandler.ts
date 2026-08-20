@@ -31,7 +31,8 @@ export function errorHandler(err: Error, req: Request, res: Response, _next: Nex
   }
 
   if (err.name === 'MulterError') {
-    if (err.code === 'LIMIT_FILE_SIZE') {
+    const multerCode = (err as Error & { code?: string }).code;
+    if (multerCode === 'LIMIT_FILE_SIZE') {
       return res.status(413).json({ error: 'Bestand te groot' });
     }
     return res.status(400).json({ error: 'Uploadfout' });

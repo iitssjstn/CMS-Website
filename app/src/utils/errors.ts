@@ -2,9 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 
 export class AppError extends Error {
   public readonly statusCode: number;
-  public readonly details?: Record<string, string[]>;
+  public readonly details?: Record<string, string[] | undefined>;
 
-  constructor(message: string, statusCode: number, details?: Record<string, string[]>) {
+  constructor(message: string, statusCode: number, details?: Record<string, string[] | undefined>) {
     super(message);
     this.statusCode = statusCode;
     this.details = details;

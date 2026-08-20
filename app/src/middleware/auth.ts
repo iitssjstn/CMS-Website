@@ -50,27 +50,20 @@ export async function requireNoSetup(req: Request, res: Response, next: NextFunc
   next();
 }
 
-export async function optionalAuth(req: Request, res: Response, next: NextFunction) {
+export function optionalAuth(req: Request, res: Response, next: NextFunction) {
   const sessionId = req.cookies?.sessionId;
+  
+  if (!sessionId) return next();
 
-  if (!sessionId) {
-    return next();
-  }
-
-  try {
-    const session = await prisma.session.findUnique({
-      where: { sessionId },
-      include: { user: true },
-    });
-
+  prisma.session.findUnique({
+    where: { sessionId },
+    include: { user: true },
+  }).then(session => {
     if (session && session.expiresAt > new Date() && session.user.isActive) {
       req.user = session.user;
       req.user.session = session;
       res.locals.user = session.user;
     }
-  } catch {
-    // Optional authentication must never block public pages.
-  }
-
-  next();
+    next();
+  }).catch(() => next());
 }
