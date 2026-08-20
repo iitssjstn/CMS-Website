@@ -18,7 +18,7 @@ export const loginSchema = z.object({
 
 export const pageSchema = z.object({
   title: z.string().min(1).max(200),
-  slug: z.string().min(1).max(200).regex(/^[a-z0-9-]+$/),
+  slug: z.string().min(1).max(200).regex(/^\/$|^[a-z0-9-]+$/, 'Ongeldige slug'),
   status: z.enum(['DRAFT', 'PUBLISHED']),
   seoTitle: z.string().max(60).optional(),
   metaDescription: z.string().max(160).optional(),
